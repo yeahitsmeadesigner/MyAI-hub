@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import express, { type Request, type Response, type NextFunction } from 'express';
+import { createServer as createHttpServer } from 'http';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI, Type } from '@google/genai';
@@ -297,13 +298,17 @@ async function startServer() {
     }
   });
 
+  const httpServer = createHttpServer(app);
+
   // Mount Vite dev server in development or static dist in production
   if (process.env.NODE_ENV !== 'production') {
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: {
         middlewareMode: true,
-        hmr: false,
+        hmr: {
+          server: httpServer,
+        },
       },
       appType: 'spa',
     });
@@ -316,7 +321,7 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
+  httpServer.listen(PORT, '0.0.0.0', () => {
     console.log(`MyAI Hub server listening on http://0.0.0.0:${PORT}`);
   });
 }

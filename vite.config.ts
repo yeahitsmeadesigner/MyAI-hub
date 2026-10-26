@@ -1,14 +1,40 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+
+/**
+ * Prevents @vite/client from opening a WebSocket in environments where
+ * HMR WebSockets are disabled or blocked by the reverse proxy, while preserving
+ * updateStyle, removeStyle, and createHotContext for CSS & React modules.
+ */
+function disableHmrWebSocketPlugin(): Plugin {
+  return {
+    name: 'disable-hmr-websocket',
+    enforce: 'post',
+    transform(code, id) {
+      if (id.includes('vite/dist/client/client.mjs')) {
+        return code.replace(
+          /const createWebSocketModuleRunnerTransport = \(options\) => \{[\s\S]*?^\};/m,
+          `const createWebSocketModuleRunnerTransport = () => ({
+            async connect() {},
+            disconnect() {},
+            send() {}
+          });`
+        );
+      }
+      return null;
+    },
+  };
+}
 
 export default defineConfig(() => {
   return {
     plugins: [
       react(),
       tailwindcss(),
+      disableHmrWebSocketPlugin(),
       VitePWA({
         registerType: 'autoUpdate',
         includeAssets: [
@@ -95,8 +121,7 @@ export default defineConfig(() => {
           ],
         },
         devOptions: {
-          enabled: true,
-          type: 'module',
+          enabled: false,
         },
       }),
     ],
