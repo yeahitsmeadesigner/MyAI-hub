@@ -1,0 +1,6 @@
+{
+  "name": "MyAI Hub",
+  "description": "A private, mobile-first personal AI command center combining an offline-capable AI assistant, tasks and reminders, smart Markdown notes, and local-first productivity tools.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
